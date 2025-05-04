@@ -1,0 +1,36 @@
+# Ignore bundler config
+/.bundle
+
+# Ignore logs and temp files
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore .env files and credentials
+.env
+.env.*
+
+# Ignore OS/system files
+.DS_Store
+
+# Ignore test coverage results
+/coverage/
+/coverage/*
+
+# Ignore Docker artifacts
+*.pid
+*.log
+docker-compose.override.yml
+
+# Ignore byebug history
+.byebug_history
+
+# Ignore Ruby gems
+*.gem
+
+# Ignore editor files
+*.swp
+*~
+.idea/
+.vscode/
