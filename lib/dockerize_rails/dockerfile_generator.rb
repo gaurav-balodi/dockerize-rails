@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module DockerizeRails
   class DockerfileGenerator
     def self.generate(path, framework)
@@ -7,10 +9,17 @@ module DockerizeRails
       dockerfile << "WORKDIR /app"
       dockerfile << "COPY . ."
       dockerfile << "RUN bundle install"
+      
       port = framework == :rails ? 3000 : 4567
-      cmd = framework == :rails ? "rails s -b '0.0.0.0'" : "ruby app.rb"
       dockerfile << "EXPOSE #{port}"
-      dockerfile << "CMD [\"#{cmd.split.first}\", \"#{cmd.split.last}\"]"
+
+      cmd = if framework == :rails
+              ['rails', 's', '-b', '0.0.0.0']
+            else
+              ['ruby', 'app.rb']
+            end
+      dockerfile << "CMD [#{cmd.map { |c| "\"#{c}\"" }.join(', ')}]"
+
       File.write(File.join(path, "Dockerfile"), dockerfile.join("\n"))
     end
   end

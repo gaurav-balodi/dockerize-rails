@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require_relative 'dependency_analyzer'
 require_relative 'dockerfile_generator'
 require_relative 'docker_compose_generator'
 
 module DockerizeRails
   class Generator
-    def initialize(path:, framework:, use:, restore: nil)
+    def initialize(path:, framework: nil, use: [], restore: nil)
       @path = path
       @framework = framework
       @explicit_services = use
