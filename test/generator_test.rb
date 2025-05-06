@@ -5,50 +5,101 @@ require 'fileutils'
 require 'stringio'
 require "dockerize_rails"
 
-module DockerizeRails
-  class GeneratorTest < Minitest::Test
-    def setup
-      @test_dir = "tmp_generator_test"
-      FileUtils.mkdir_p(@test_dir)
+require "test_helper"
 
-      # Create a fake Gemfile.lock for detecting services
-      File.write(File.join(@test_dir, "Gemfile.lock"), <<~LOCK)
-        GEM
-          specs:
-            pg (1.2.3)
-            redis (4.2.5)
-      LOCK
-    end
+class GeneratorTest < Minitest::Test
+  def setup
+    @tmp_path = File.expand_path("../tmp_generator_test", __dir__)
+    FileUtils.rm_rf(@tmp_path)
+    FileUtils.mkdir_p(@tmp_path)
+  end
 
-    def teardown
-      FileUtils.rm_rf(@test_dir)
-    end
+  def test_generator_with_explicit_framework_and_services
+    fake_analyzer = Minitest::Mock.new
+    fake_analyzer.expect(:detect_framework, :rails)
+    fake_analyzer.expect(:detect_services, [:postgres])
 
-    def test_generator_with_explicit_services
-      out = capture_stdout do
-        generator = Generator.new(
-          path: @test_dir,
-          framework: :rails,
-          use: ["postgres", "redis"]
-        )
-        generator.run
+    DockerizeRails::DependencyAnalyzer.stub :new, fake_analyzer do
+      DockerizeRails::DockerfileGenerator.stub :generate, true do
+        DockerizeRails::DockerComposeGenerator.stub :generate, true do
+          DockerizeRails::DatabaseCreator.stub :create, true do
+            generator = DockerizeRails::Generator.new(
+              path: @tmp_path,
+              framework: :sinatra,
+              use: [:redis]
+            )
+
+            simulate_stdin("y\n") do
+              output = capture_output { generator.run }
+              assert_includes output, "✔ Detected framework: sinatra"
+              assert_includes output, "✔ Services: redis"
+              assert_includes output, "✔ Database not provided. Do you want to create a new database?"
+              assert_includes output, "✔ Docker setup generated successfully."
+            end
+          end
+        end
       end
-
-      assert_includes out, "✔ Detected framework: rails"
-      assert_includes out, "✔ Services: postgres, redis"
-      assert File.exist?(File.join(@test_dir, "Dockerfile"))
-      assert File.exist?(File.join(@test_dir, "docker-compose.yml"))
     end
+  end
 
-    private
+  def test_generator_with_restore_file
+    fake_analyzer = Minitest::Mock.new
+    fake_analyzer.expect(:detect_framework, :rails)
+    fake_analyzer.expect(:detect_services, [:postgres])
 
-    def capture_stdout
-      original_stdout = $stdout
-      $stdout = StringIO.new
-      yield
-      $stdout.string
-    ensure
-      $stdout = original_stdout
+    DockerizeRails::DependencyAnalyzer.stub :new, fake_analyzer do
+      DockerizeRails::DockerfileGenerator.stub :generate, true do
+        DockerizeRails::DockerComposeGenerator.stub :generate, true do
+          DockerizeRails::DatabaseRestorer.stub :restore, true do
+            generator = DockerizeRails::Generator.new(
+              path: @tmp_path,
+              restore: "db/dump.sql"
+            )
+            output = capture_output { generator.run }
+            assert_includes output, "✔ Restoring database from dump file 'db/dump.sql'..."
+          end
+        end
+      end
     end
+  end
+
+  def test_generator_skips_database_creation
+    fake_analyzer = Minitest::Mock.new
+    fake_analyzer.expect(:detect_framework, :rails)
+    fake_analyzer.expect(:detect_services, [:postgres])
+
+    DockerizeRails::DependencyAnalyzer.stub :new, fake_analyzer do
+      DockerizeRails::DockerfileGenerator.stub :generate, true do
+        DockerizeRails::DockerComposeGenerator.stub :generate, true do
+          generator = DockerizeRails::Generator.new(path: @tmp_path)
+
+          simulate_stdin("n\n") do
+            output = capture_output { generator.run }
+            assert_includes output, "✔ Skipping database creation."
+          end
+        end
+      end
+    end
+  end
+
+  private
+
+  def simulate_stdin(*inputs)
+    io = StringIO.new
+    io.puts(inputs.flatten)
+    io.rewind
+    $stdin = io
+    yield
+  ensure
+    $stdin = STDIN
+  end
+
+  def capture_output
+    out = StringIO.new
+    $stdout = out
+    yield
+    out.string
+  ensure
+    $stdout = STDOUT
   end
 end

@@ -2,7 +2,7 @@
 
 require "minitest/autorun"
 require "fileutils"
-require_relative "../lib/dockerize_rails/dependency_analyzer"
+require "dockerize_rails/dependency_analyzer"
 
 class DockerizeRails::DependencyAnalyzerTest < Minitest::Test
   def setup
