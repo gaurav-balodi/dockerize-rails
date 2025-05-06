@@ -6,7 +6,7 @@ module DockerizeRails
       puts "✔ Creating database '#{db_name}' inside Docker container..."
 
       container_name = "app"  # Assuming the container is named 'app', adjust if needed
-      command = "docker-compose exec #{container_name} bash -c 'rails db:create'"
+      command = "docker compose exec #{container_name} bash -c 'rails db:create'"
 
       result = system(command)
       

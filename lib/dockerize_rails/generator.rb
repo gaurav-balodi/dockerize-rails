@@ -6,32 +6,6 @@ require_relative 'docker_compose_generator'
 require_relative 'database_creator'
 require_relative 'database_restorer'
 
-# module DockerizeRails
-#   class Generator
-#     def initialize(path:, framework: nil, use: [], restore: nil)
-#       @path = path
-#       @framework = framework
-#       @explicit_services = use
-#       @restore_file = restore
-#     end
-
-#     def run
-#       analyzer = DependencyAnalyzer.new(@path)
-#       framework = @framework || analyzer.detect_framework
-#       services = @explicit_services.any? ? @explicit_services : analyzer.detect_services
-
-#       puts "✔ Detected framework: #{framework}"
-#       puts "✔ Services: #{services.join(', ')}"
-
-#       DockerfileGenerator.generate(@path, framework)
-#       DockerComposeGenerator.generate(@path, framework, services)
-
-#       puts "✔ Docker setup generated successfully."
-#       puts "✔ To build: docker-compose up --build"
-#     end
-#   end
-# end
-
 module DockerizeRails
   class Generator
     def initialize(path:, framework: nil, use: [], restore: nil)
@@ -69,7 +43,7 @@ module DockerizeRails
       end
 
       puts "✔ Docker setup generated successfully."
-      puts "✔ To build: docker-compose up --build"
+      puts "✔ To build: docker compose up --build"
     end
 
     private

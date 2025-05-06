@@ -27,7 +27,7 @@ class DockerComposeGeneratorTest < Minitest::Test
     assert_includes data["services"]["web"]["ports"], "3000:3000"
     assert_equal %w[postgres redis], data["services"]["web"]["depends_on"]
 
-    assert_equal "postgres:15", data["services"]["postgres"]["image"]
+    assert_equal "postgres:14", data["services"]["postgres"]["image"]
     assert_equal "redis:6", data["services"]["redis"]["image"]
   end
 
@@ -58,7 +58,7 @@ class DockerComposeGeneratorTest < Minitest::Test
     assert_includes data["services"]["web"]["ports"], "3000:3000"
     assert_equal ["postgres"], data["services"]["web"]["depends_on"]
 
-    assert_equal "postgres:15", data["services"]["postgres"]["image"]
+    assert_equal "postgres:14", data["services"]["postgres"]["image"]
   end
 
   def test_generate_compose_for_sinatra_with_redis_and_mysql

@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.files         = Dir["lib/**/*", "bin/*", "README.md", "LICENSE.txt"]
 
   # Instead of Rails, provide dependencies that would be needed across frameworks
-  spec.add_runtime_dependency "docker-api", "~> 1.39"
+  # spec.add_runtime_dependency "docker-api", "~> 1.39"
   
   # Development dependencies (for testing, etc.)
   spec.add_development_dependency "minitest", "~> 5.0"
