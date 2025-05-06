@@ -3,64 +3,62 @@
 require 'yaml'
 require 'fileutils'
 
-require 'yaml'
-require 'fileutils'
-
 module DockerizeRails
   class DockerComposeGenerator
-    def self.generate(path, framework, services)
-      services = Array(services).map(&:to_sym)
+    def self.generate(path, framework, services = [])
       compose = {
-        'version' => '3',
-        'services' => {
-          'web' => {
-            'build' => '.',
-            'volumes' => ['./:/app'],
-            'ports' => [framework == :sinatra ? '4567:4567' : '3000:3000'],
-            'depends_on' => []
+        "version" => "3",
+        "services" => {
+          "web" => {
+            "build" => ".",
+            "volumes" => ["./:/app"],
+            "ports" => ["3000:3000"],
+            "depends_on" => []
           }
         }
       }
 
       if services.include?(:postgres)
-        compose['services']['db'] = {
-          'image' => 'postgres',
-          'ports' => ['5432:5432'],
-          'environment' => ['POSTGRES_PASSWORD=secret']
+        compose["services"]["postgres"] = {
+          "image" => "postgres:15",
+          "ports" => ["5432:5432"],
+          "environment" => {
+            "POSTGRES_USER" => "user",
+            "POSTGRES_PASSWORD" => "password"
+          }
         }
-        compose['services']['web']['depends_on'] << 'db'
-      end
-
-      if services.include?(:mysql)
-        compose['services']['db'] = {
-          'image' => 'mysql',
-          'ports' => ['3306:3306'],
-          'environment' => [
-            'MYSQL_ROOT_PASSWORD=secret',
-            'MYSQL_DATABASE=app_db'
-          ]
-        }
-        compose['services']['web']['depends_on'] << 'db'
+        compose["services"]["web"]["depends_on"] << "postgres"
       end
 
       if services.include?(:redis)
-        compose['services']['redis'] = {
-          'image' => 'redis',
-          'ports' => ['6379:6379']
+        compose["services"]["redis"] = {
+          "image" => "redis:6",
+          "ports" => ["6379:6379"]
         }
-        compose['services']['web']['depends_on'] << 'redis'
+        compose["services"]["web"]["depends_on"] << "redis"
+      end
+
+      if services.include?(:mysql)
+        compose["services"]["mysql"] = {
+          "image" => "mysql:8",
+          "ports" => ["3306:3306"],
+          "environment" => {
+            "MYSQL_ROOT_PASSWORD" => "secret",
+            "MYSQL_DATABASE" => "app_db"
+          }
+        }
+        compose["services"]["web"]["depends_on"] << "mysql"
       end
 
       if services.include?(:mongodb)
-        compose['services']['mongodb'] = {
-          'image' => 'mongo',
-          'ports' => ['27017:27017']
+        compose["services"]["mongodb"] = {
+          "image" => "mongo:6",
+          "ports" => ["27017:27017"]
         }
-        compose['services']['web']['depends_on'] << 'mongodb'
+        compose["services"]["web"]["depends_on"] << "mongodb"
       end
 
-      FileUtils.mkdir_p(path)
-      File.write(File.join(path, 'docker-compose.yml'), compose.to_yaml(line_width: -1))  # Ensure correct indentation
+      File.write(File.join(path, "docker-compose.yml"), compose.to_yaml)
     end
   end
 end
