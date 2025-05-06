@@ -22,6 +22,7 @@ module DockerizeRails
           end
         end
       rescue => e
+        puts "DockerfileGenerator Invalid bundle config: #{e.message}"
         # Fail gracefully: skip bundle config if anything goes wrong
         bundle_config_cmds = []
       end

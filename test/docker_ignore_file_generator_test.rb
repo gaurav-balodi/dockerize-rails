@@ -2,7 +2,7 @@ require "minitest/autorun"
 require "fileutils"
 require "dockerize_rails"
 
-class DockerIgnoreGeneratorTest < Minitest::Test
+class DockerIgnoreFileGeneratorTest < Minitest::Test
   def setup
     @tmp_dir = Dir.mktmpdir
     @dockerignore_path = File.join(@tmp_dir, ".dockerignore")
@@ -13,11 +13,11 @@ class DockerIgnoreGeneratorTest < Minitest::Test
   end
 
   def test_creates_dockerignore_with_all_default_paths
-    updater = DockerizeRails::DockerIgnoreGenerator.new(@tmp_dir)
+    updater = DockerizeRails::DockerIgnoreFileGenerator.new(@tmp_dir)
     updater.ensure_ignored
 
     content = File.read(@dockerignore_path)
-    DockerizeRails::DockerIgnoreGenerator::DEFAULT_IGNORED_PATHS.each do |line|
+    DockerizeRails::DockerIgnoreFileGenerator::DEFAULT_IGNORED_PATHS.each do |line|
       assert_includes content, line
     end
   end
@@ -25,7 +25,7 @@ class DockerIgnoreGeneratorTest < Minitest::Test
   def test_does_not_duplicate_existing_entries
     File.write(@dockerignore_path, "log/\n")
 
-    updater = DockerizeRails::DockerIgnoreGenerator.new(@tmp_dir)
+    updater = DockerizeRails::DockerIgnoreFileGenerator.new(@tmp_dir)
     updater.ensure_ignored
 
     content = File.read(@dockerignore_path).lines.map(&:strip)

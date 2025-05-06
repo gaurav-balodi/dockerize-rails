@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module DockerizeRails
-  class DockerIgnoreGenerator
+  class DockerIgnoreFileGenerator
     DEFAULT_IGNORED_PATHS = [
       'config/database.yml',
       'log/',

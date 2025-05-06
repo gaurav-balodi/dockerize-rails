@@ -2,6 +2,7 @@
 
 require_relative 'dependency_analyzer'
 require_relative 'dockerfile_generator'
+require_relative 'docker_ignore_file_generator'
 require_relative 'docker_compose_generator'
 require_relative 'database_creator'
 require_relative 'database_restorer'
@@ -24,6 +25,7 @@ module DockerizeRails
       puts "✔ Services: #{services.join(', ')}"
 
       DockerfileGenerator.generate(@path, framework)
+      DockerIgnoreFileGenerator.new.ensure_ignored
       DockerComposeGenerator.generate(@path, framework, services)
 
       # Ask user about restoring or creating database
